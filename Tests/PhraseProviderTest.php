@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Translation\Bridge\Phrase\Tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
@@ -48,9 +49,7 @@ class PhraseProviderTest extends TestCase
     private array $readConfig;
     private array $writeConfig;
 
-    /**
-     * @dataProvider toStringProvider
-     */
+    #[DataProvider('toStringProvider')]
     public function testToString(?string $endpoint, string $expected)
     {
         $provider = $this->createProvider(endpoint: $endpoint);
@@ -58,9 +57,7 @@ class PhraseProviderTest extends TestCase
         self::assertSame($expected, (string) $provider);
     }
 
-    /**
-     * @dataProvider readProvider
-     */
+    #[DataProvider('readProvider')]
     public function testRead(string $locale, string $localeId, string $domain, string $responseContent, TranslatorBag $expectedTranslatorBag)
     {
         $item = $this->createMock(CacheItemInterface::class);
@@ -110,9 +107,7 @@ class PhraseProviderTest extends TestCase
         $this->assertSame($expectedTranslatorBag->getCatalogues(), $translatorBag->getCatalogues());
     }
 
-    /**
-     * @dataProvider readProvider
-     */
+    #[DataProvider('readProvider')]
     public function testReadCached(string $locale, string $localeId, string $domain, string $responseContent, TranslatorBag $expectedTranslatorBag)
     {
         $item = $this->createMock(CacheItemInterface::class);
@@ -260,9 +255,7 @@ class PhraseProviderTest extends TestCase
         $provider->read([$domain], [$locale]);
     }
 
-    /**
-     * @dataProvider cacheKeyProvider
-     */
+    #[DataProvider('cacheKeyProvider')]
     public function testCacheKeyOptionsSort(array $options, string $expectedKey)
     {
         $this->getCache()->expects(self::once())->method('getItem')->with($expectedKey);
@@ -291,9 +284,7 @@ class PhraseProviderTest extends TestCase
         $provider->read(['messages'], ['en_GB']);
     }
 
-    /**
-     * @dataProvider cacheItemProvider
-     */
+    #[DataProvider('cacheItemProvider')]
     public function testGetCacheItem(mixed $cachedValue, bool $hasMatchHeader)
     {
         $item = $this->createMock(CacheItemInterface::class);
@@ -376,9 +367,7 @@ class PhraseProviderTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider readProviderExceptionsProvider
-     */
+    #[DataProvider('readProviderExceptionsProvider')]
     public function testReadProviderExceptions(int $statusCode, string $expectedExceptionMessage, string $expectedLoggerMessage)
     {
         $this->getLogger()
@@ -412,9 +401,7 @@ class PhraseProviderTest extends TestCase
         $provider->read(['messages'], ['en_GB']);
     }
 
-    /**
-     * @dataProvider initLocalesExceptionsProvider
-     */
+    #[DataProvider('initLocalesExceptionsProvider')]
     public function testInitLocalesExceptions(int $statusCode, string $expectedExceptionMessage, string $expectedLoggerMessage)
     {
         $this->getLogger()
@@ -536,9 +523,7 @@ class PhraseProviderTest extends TestCase
         $provider->read(['messages'], ['nl_NL']);
     }
 
-    /**
-     * @dataProvider createLocalesExceptionsProvider
-     */
+    #[DataProvider('createLocalesExceptionsProvider')]
     public function testCreateLocaleExceptions(int $statusCode, string $expectedExceptionMessage, string $expectedLoggerMessage)
     {
         $this->getLogger()
@@ -624,9 +609,7 @@ class PhraseProviderTest extends TestCase
         $provider->delete($bag);
     }
 
-    /**
-     * @dataProvider deleteExceptionsProvider
-     */
+    #[DataProvider('deleteExceptionsProvider')]
     public function testDeleteProviderExceptions(int $statusCode, string $expectedExceptionMessage, string $expectedLoggerMessage)
     {
         $this->getLogger()
@@ -666,9 +649,7 @@ class PhraseProviderTest extends TestCase
         $provider->delete($bag);
     }
 
-    /**
-     * @dataProvider writeProvider
-     */
+    #[DataProvider('writeProvider')]
     public function testWrite(string $locale, string $localeId, string $domain, string $content, TranslatorBag $bag)
     {
         $this->getWriteConfig($domain, $localeId);
@@ -742,9 +723,7 @@ class PhraseProviderTest extends TestCase
         $provider->write($bag);
     }
 
-    /**
-     * @dataProvider writeExceptionsProvider
-     */
+    #[DataProvider('writeExceptionsProvider')]
     public function testWriteProviderExceptions(int $statusCode, string $expectedExceptionMessage, string $expectedLoggerMessage)
     {
         $this->getLogger()
