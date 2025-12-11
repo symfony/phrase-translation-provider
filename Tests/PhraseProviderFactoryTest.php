@@ -11,29 +11,32 @@
 
 namespace Symfony\Component\Translation\Bridge\Phrase\Tests;
 
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Symfony\Component\Cache\Adapter\NullAdapter;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\Translation\Bridge\Phrase\PhraseProviderFactory;
 use Symfony\Component\Translation\Dumper\XliffFileDumper;
 use Symfony\Component\Translation\Exception\IncompleteDsnException;
 use Symfony\Component\Translation\Exception\MissingRequiredOptionException;
 use Symfony\Component\Translation\Exception\UnsupportedSchemeException;
+use Symfony\Component\Translation\Loader\ArrayLoader;
 use Symfony\Component\Translation\Loader\LoaderInterface;
 use Symfony\Component\Translation\Provider\Dsn;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * @author wicliff <wicliff.wolda@gmail.com>
  */
 class PhraseProviderFactoryTest extends TestCase
 {
-    private MockObject&MockHttpClient $httpClient;
-    private MockObject&LoggerInterface $logger;
-    private MockObject&LoaderInterface $loader;
-    private MockObject&XliffFileDumper $xliffFileDumper;
-    private MockObject&CacheItemPoolInterface $cache;
+    private MockHttpClient $httpClient;
+    private LoggerInterface $logger;
+    private LoaderInterface $loader;
+    private XliffFileDumper $xliffFileDumper;
+    private CacheItemPoolInterface $cache;
     private string $defaultLocale;
 
     /**
@@ -98,7 +101,8 @@ class PhraseProviderFactoryTest extends TestCase
 
     public function testHttpClientConfig()
     {
-        $this->getHttpClient()
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient
             ->expects(self::once())
             ->method('withOptions')
             ->with([
@@ -111,7 +115,7 @@ class PhraseProviderFactoryTest extends TestCase
 
         $dsn = new Dsn('phrase://PROJECT_ID:API_TOKEN@api.us.app.phrase.com:8080?userAgent=myProject');
 
-        $this->createFactory()
+        $this->createFactory($httpClient)
             ->create($dsn);
     }
 
@@ -144,10 +148,10 @@ class PhraseProviderFactoryTest extends TestCase
         yield 'not supported' => [false, 'unsupported://PROJECT_ID:API_TOKEN@default?userAgent=myProject'];
     }
 
-    private function createFactory(): PhraseProviderFactory
+    private function createFactory(?HttpClientInterface $httpClient = null): PhraseProviderFactory
     {
         return new PhraseProviderFactory(
-            $this->getHttpClient(),
+            $httpClient ?? $this->getHttpClient(),
             $this->getLogger(),
             $this->getLoader(),
             $this->getXliffFileDumper(),
@@ -156,29 +160,29 @@ class PhraseProviderFactoryTest extends TestCase
         );
     }
 
-    private function getHttpClient(): MockObject&MockHttpClient
+    private function getHttpClient(): MockHttpClient
     {
-        return $this->httpClient ??= $this->createMock(MockHttpClient::class);
+        return $this->httpClient ??= new MockHttpClient();
     }
 
-    private function getLogger(): MockObject&LoggerInterface
+    private function getLogger(): LoggerInterface
     {
-        return $this->logger ??= $this->createMock(LoggerInterface::class);
+        return $this->logger ??= new NullLogger();
     }
 
-    private function getLoader(): MockObject&LoaderInterface
+    private function getLoader(): LoaderInterface
     {
-        return $this->loader ??= $this->createMock(LoaderInterface::class);
+        return $this->loader ??= new ArrayLoader();
     }
 
-    private function getXliffFileDumper(): XliffFileDumper&MockObject
+    private function getXliffFileDumper(): XliffFileDumper
     {
-        return $this->xliffFileDumper ??= $this->createMock(XliffFileDumper::class);
+        return $this->xliffFileDumper ??= new XliffFileDumper();
     }
 
-    private function getCache(): MockObject&CacheItemPoolInterface
+    private function getCache(): CacheItemPoolInterface
     {
-        return $this->cache ??= $this->createMock(CacheItemPoolInterface::class);
+        return $this->cache ??= new NullAdapter();
     }
 
     private function getDefaultLocale(): string
